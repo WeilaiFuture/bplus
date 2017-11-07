@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include "diskmngr.h"
 
 using namespace std;
 
@@ -22,7 +23,6 @@ private:
         int numberKeys;
         explicit Node(int t);
         ~Node();
-//        Node(Node * n);
     };
     int t; // branching factor
 //    int pageSize;
