@@ -60,6 +60,7 @@ public:
     ~BPlusTree();
     void insert(Key key, Data data);
     void printTree();
+    Data search(Key key);
 };
 
 //---------------------------------
@@ -426,6 +427,28 @@ TMPL void BPlusTree<Key, Data>::saveNode(Node * n) {
 
     dm->writeToDisk((void *)buff, n->offset);
     delete[] buff;
+}
+
+
+//---------------------------------
+// Search
+//---------------------------------
+
+TMPL Data BPlusTree<Key, Data>::search(Key key) {
+    int i = 0;
+
+    Node * n = new Node(t);
+    loadNode(n, root->offset);
+    while (!n->isLeaf) {
+        while (i < n->numberKeys && n->keys[i] < key) i++;
+        loadNode(n, n->children[i]);
+    }
+    while (i < n->numberKeys && n->keys[i] < key) i++;
+    if (n->keys[i] != key) {
+        throw invalid_argument("key not present in tree");
+    }
+    return n->data[i];
+
 }
 
 

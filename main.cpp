@@ -8,14 +8,12 @@ using namespace std;
 
 int main() {
     BPlusTree<int, int> * t = new BPlusTree<int, int>(PAGESIZE, CACHESIZE);
-    int a[] = {5, 10, 15, 20, 25, 0, 1, 30, 3};
+    int a[] = {5, 10, 15, 20, 25, 0, 1, 30, 3, 4, 21, 22, 2};
 
     int n = sizeof(a) / sizeof(a[0]);
     for (int i = 0; i < n; i++) {
         t->insert(a[i], 10);
     }
-
-    t->insert(2, 10);
 
     t->printTree();
 
