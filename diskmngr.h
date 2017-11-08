@@ -20,14 +20,14 @@ private:
     fstream file;
     void writeToCache(char * p, int offset);
     int lookInCache(int offset);
+    int getFileSize();
 public:
     DiskManager(int pageSize, int cacheSize);
     ~DiskManager();
 
     void * readFromDisk(int offset);
-    int writeToDisk(void * page);
+    int getNewOffset();
     void writeToDisk(void * page, int offset);
-    int getFileSize();
 };
 
 //---------------------------------
@@ -74,10 +74,8 @@ int DiskManager::getFileSize() {
     return (int)file.tellg();
 }
 
-int DiskManager::writeToDisk(void * page) {
-    int offset = getFileSize();
-    writeToDisk(page, offset);
-    return offset;
+int DiskManager::getNewOffset() {
+    return getFileSize();
 }
 
 void DiskManager::writeToDisk(void * page, int offset) {
