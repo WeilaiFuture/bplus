@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sys/stat.h>
+#include "lrucache.h"
 
 #define DBFILE "/Users/john/Code/isp/bplus/db"
 
@@ -12,14 +13,12 @@ using namespace std;
 
 class DiskManager {
 private:
-    int * cacheOffset;
-    char ** cachePointer;
-    int cacheCursor;
+    LRUCache<int, char *> * cache;
     int pageSize;
     int cacheSize;
     fstream file;
     void writeToCache(char * p, int offset);
-    int lookInCache(int offset);
+    char * lookInCache(int offset);
     int getFileSize();
 public:
     DiskManager(int pageSize, int cacheSize);
@@ -37,13 +36,8 @@ public:
 DiskManager::DiskManager(int pageSize, int cacheSize) {
     this->pageSize = pageSize;
     this->cacheSize = cacheSize;
-    cacheOffset = new int[cacheSize];
-    cachePointer = new char * [cacheSize];
-    cacheCursor = 0;
-    for (int i = 0; i < cacheSize; i++) {
-        cacheOffset[i] = -1;
-        cachePointer[i] = NULL;
-    }
+
+    cache = new LRUCache<int, char *>(cacheSize);
 
     file.open(DBFILE, ios::out | ios::binary | ios::trunc);
     file.seekp(0, ios::beg);
@@ -54,11 +48,7 @@ DiskManager::DiskManager(int pageSize, int cacheSize) {
 }
 
 DiskManager::~DiskManager() {
-    for (int i = 0; i < cacheSize; i++) {
-        delete cachePointer[i];
-    }
-    delete cachePointer;
-    delete cacheOffset;
+    delete cache;
 
     file.close();
 }
@@ -80,6 +70,8 @@ int DiskManager::getNewOffset() {
 
 void DiskManager::writeToDisk(void * page, int offset) {
     if (offset > getFileSize()) {
+        printf("offset %d\n", offset);
+        fflush(stdout);
         throw invalid_argument("too big offset");
     }
     file.seekp(offset, ios::beg);
@@ -101,9 +93,9 @@ void * DiskManager::readFromDisk(int offset) {
         throw invalid_argument("too big offset");
     }
 
-    int os = lookInCache(offset);
-    if (os != -1) {
-        return (void *)cachePointer[os];
+    char * po = lookInCache(offset);
+    if (po != NULL) {
+        return (void *)po;
     }
 
     char * p = new char[pageSize];
@@ -120,29 +112,16 @@ void * DiskManager::readFromDisk(int offset) {
 //---------------------------------
 
 void DiskManager::writeToCache(char * p, int offset) {
-    for (int i = 0; i < cacheSize; i++) {
-        if (cacheOffset[i] == offset) {
-            delete cachePointer[i];
-            cachePointer[i] = p;
-            return;
-        }
-    }
-
-    if (cachePointer[cacheCursor] != NULL) {
-        delete cachePointer[cacheCursor];
-    }
-    cachePointer[cacheCursor] = p;
-    cacheOffset[cacheCursor] = offset;
-    cacheCursor = (cacheCursor + 1) % cacheSize;
+    cache->write(offset, p);
 }
 
-int DiskManager::lookInCache(int offset) {
-    for (int i = 0; i < cacheSize; i++) {
-        if (cacheOffset[i] == offset) {
-            return i;
-        }
+char * DiskManager::lookInCache(int offset) {
+    try {
+        char * p = cache->read(offset);
+        return p;
+    } catch (std::invalid_argument) {
+        return NULL;
     }
-    return -1;
 }
 
 #endif

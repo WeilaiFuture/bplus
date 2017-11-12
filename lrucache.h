@@ -5,12 +5,11 @@
 #include <list>
 #include <utility>
 
-#define TMPL template <typename Key, typename Value>
-
-TMPL class LRUCache {
+template <typename Key, typename Value>
+class LRUCache {
 public:
     typedef std::pair<Key, Value> pair_t;
-    typedef std::list<pair_t>::iterator list_it;
+    typedef typename std::list<pair_t>::iterator list_it;
 
     LRUCache(int size) { cacheSize = size; };
     void write(Key key, Value value);
@@ -22,8 +21,9 @@ private:
     std::unordered_map<Key, list_it> cacheMap;
 };
 
-TMPL void LRUCache::write(Key key, Value value) {
-    std::unordered_map::iterator i = cacheMap.find(key);
+template <typename Key, typename Value>
+void LRUCache<Key, Value>::write(Key key, Value value) {
+    auto i = cacheMap.find(key);
     if (i == cacheMap.end()) {
         // no such element in map
         if (cacheMap.size() + 1 > cacheSize) {
@@ -45,8 +45,9 @@ TMPL void LRUCache::write(Key key, Value value) {
     }
 }
 
-TMPL Value LRUCache::read(Key key) {
-    std::unordered_map::iterator i = cacheMap.find(key);
+template <typename Key, typename Value>
+Value LRUCache<Key, Value>::read(Key key) {
+    auto i = cacheMap.find(key);
     if (i == cacheMap.end()) {
         throw std::invalid_argument("no such key in cache"); // !!! handle this exception in diskmngr
     } else {
