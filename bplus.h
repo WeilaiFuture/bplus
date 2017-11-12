@@ -80,7 +80,7 @@ TMPL BPlusTree<Key, Data>::BPlusTree(int pageSize, int cacheSize) {
     root->offset = dm->getNewOffset();
     saveNode(root);
 
-    cout << "Branching factor: " << t << endl << endl;
+//    cout << "Branching factor: " << t << endl << endl;
 }
 
 TMPL BPlusTree<Key, Data>::~BPlusTree() {
